@@ -9,5 +9,7 @@ user_template: ../../prompts/skeleton_user.txt
 # Antibody Skeleton Extraction Skill
 
 Use this skill when the skeleton agent turns paper evidence into the normalized
-antibody JSON schema. The skill keeps the extraction rules in versioned prompt
-assets so agent execution receives the same prompt text as the legacy pipeline.
+antibody JSON schema. This is the core extraction stage of the pipeline. It
+applies evidence-unit-first logic, strict inclusion/exclusion rules, and
+anti-hallucination guards to produce structured antibody records from immunology
+literature.

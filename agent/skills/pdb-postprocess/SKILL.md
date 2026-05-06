@@ -9,5 +9,5 @@ user_template: ../../prompts/pdb_postprocess_user.txt
 # PDB Postprocess Skill
 
 Use this skill after external PDB lookup. It maps candidate structures and
-heuristic FASTA evidence back to the current antibody without adding unsupported
-chains, tags, linkers, or antigen sequences.
+heuristic FASTA evidence back to the current antibody entry without adding
+unsupported chains, tags, linkers, or antigen sequences.

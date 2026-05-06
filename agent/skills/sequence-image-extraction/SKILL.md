@@ -8,5 +8,6 @@ system_prompt: ../../prompts/sequence_image_extract_system.txt
 # Sequence Image Extraction Skill
 
 Use this skill for image-only sequence evidence. It transcribes visible amino
-acid characters, handles alignment-reference rows conservatively, and keeps
-partial or unassigned fragments out of full VH/VL fields.
+acid characters from alignment figures or sequence block images, handles
+alignment-reference rows conservatively, and keeps partial or unassigned
+fragments out of full VH/VL fields.

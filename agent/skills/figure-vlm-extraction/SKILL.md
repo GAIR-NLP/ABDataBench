@@ -9,4 +9,6 @@ extract_prompt: ../../prompts/vlm_extract_system.txt
 # Figure VLM Extraction Skill
 
 Use this skill for targeted VLM image supplementation when structured extraction
-leaves sequence, kinetics, quantitative, or efficacy gaps.
+leaves sequence, kinetics, quantitative, or efficacy gaps. It first triages each
+figure into a relevance category, then extracts antibody-level data from relevant
+images only.
