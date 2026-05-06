@@ -1,0 +1,7 @@
+[Reduction Task]: Filter this single paper chunk for downstream antibody extraction.
+
+[Paper ID]: {PAPER_ID}
+[Chunk Index]: {CHUNK_INDEX}/{TOTAL_CHUNKS}
+
+[Chunk Text]:
+{CHUNK_TEXT}

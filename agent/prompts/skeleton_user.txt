@@ -1,0 +1,9 @@
+{REGEX_HINTS}
+
+[Paper ID]: {PAPER_ID}
+
+[Paper Focus Analysis]:
+{PAPER_FOCUS_ANALYSIS}
+
+[Document Text]:
+{DOCUMENT_TEXT}

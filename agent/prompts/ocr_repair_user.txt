@@ -1,0 +1,12 @@
+[Paper ID]
+{PAPER_ID}
+
+[Chunk]
+{CHUNK_INDEX}/{TOTAL_CHUNKS}
+
+[Task]
+Repair OCR formatting errors conservatively while preserving every scientific token exactly.
+If the chunk contains an HTML table, prefer header-only repair. Do not change row labels or numeric/body cells.
+
+[OCR Markdown Chunk]
+{CHUNK_TEXT}

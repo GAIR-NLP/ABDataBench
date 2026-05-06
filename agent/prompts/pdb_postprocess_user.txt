@@ -1,0 +1,20 @@
+[Task]
+Normalize this antibody's PDB lookup result into a single backfill JSON object.
+
+[Paper ID]
+{PAPER_ID}
+
+[Antibody Name]
+{ANTIBODY_NAME}
+
+[Current Antibody Entry]
+{ANTIBODY_JSON}
+
+[Heuristic Backfill]
+{HEURISTIC_JSON}
+
+[Candidate PDB Codes]
+{CANDIDATE_PDB_CODES}
+
+[PDB Result Summary]
+{PDB_SUMMARY_JSON}
