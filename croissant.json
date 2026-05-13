@@ -1,0 +1,473 @@
+{
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "citeAs": "cr:citeAs",
+    "column": "cr:column",
+    "conformsTo": "dct:conformsTo",
+    "cr": "http://mlcommons.org/croissant/",
+    "rai": "http://mlcommons.org/croissant/RAI/",
+    "data": {"@id": "cr:data", "@type": "@json"},
+    "dataType": {"@id": "cr:dataType", "@type": "@vocab"},
+    "dct": "http://purl.org/dc/terms/",
+    "equivalentProperty": "cr:equivalentProperty",
+    "examples": {"@id": "cr:examples", "@type": "@json"},
+    "extract": "cr:extract",
+    "field": "cr:field",
+    "fileProperty": "cr:fileProperty",
+    "fileObject": "cr:fileObject",
+    "fileSet": "cr:fileSet",
+    "format": "cr:format",
+    "includes": "cr:includes",
+    "isLiveDataset": "cr:isLiveDataset",
+    "jsonPath": "cr:jsonPath",
+    "key": "cr:key",
+    "md5": "cr:md5",
+    "parentField": "cr:parentField",
+    "path": "cr:path",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "samplingRate": "cr:samplingRate",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "subField": "cr:subField",
+    "transform": "cr:transform"
+  },
+  "@type": "sc:Dataset",
+  "name": "ABDataBench",
+  "description": "ABDataBench is an agent-agnostic benchmark for evidence-grounded antibody functional data construction from primary scientific literature and patents. It comprises 32 expert-annotated, OCR-processed documents (27 research papers and 5 patents), yielding 161 densely annotated antibody-level records under a unified 22-field schema. Fields are grouped into Core (weight 2.0), Standard (weight 1.0), and Auxiliary (weight 0.5) tiers reflecting downstream utility for computational antibody engineering. The benchmark stresses cross-document entity resolution, multi-modal evidence binding (text, tables, figures, supplements, external databases), database grounding (PDB, GenBank, IMGT), and numerical normalization under unit and format heterogeneity. Evaluation uses record-level Hungarian alignment, deterministic numeric and string checks, an LLM-as-Judge for nine semantic fields under field-specific rubrics, and explicit hallucination and omission penalties. Ground-truth annotations live in benchmark/ground_truth/ground_truth.json keyed by paper_id, and the corresponding OCR Markdown plus supplementary materials live under dataset/<paper_id>/.",
+  "conformsTo": "http://mlcommons.org/croissant/1.0",
+  "version": "1.0.0",
+  "datePublished": "2026-05-13",
+  "license": "https://www.apache.org/licenses/LICENSE-2.0",
+  "url": "https://anonymous.4open.science/r/ABDataBench-4E0E",
+  "citeAs": "Anonymous Authors. ABDataBench: Evaluating AI Agents for Evidence-Grounded Antibody Record Construction. NeurIPS 2026 Evaluations and Datasets Track submission (under review).",
+  "keywords": [
+    "antibody",
+    "biomedical information extraction",
+    "scientific document understanding",
+    "multi-agent systems",
+    "LLM-as-Judge",
+    "evidence-grounded extraction",
+    "benchmark",
+    "Croissant",
+    "Responsible AI"
+  ],
+  "creator": {
+    "@type": "Organization",
+    "name": "Anonymous Authors"
+  },
+
+  "rai:dataCollection": "Source documents were selected by domain experts (immunology researchers) for the presence of experimentally characterized antibodies with associated functional data: variable-region sequences, CDR loops, binding kinetics, epitope mappings, and where available structural or in vivo information. Selection prioritized documents with diverse antibody formats (mAb, scFv, Fab, VHH, bispecific) and target categories (viral, oncology, infectious disease) and included both peer-reviewed publications and patent filings. Documents span 2005-2025. Each PDF was converted to Markdown with MinerU v2.7 in VLM mode, preserving tables, figure captions, and rendered equations, and figures with data-bearing panels were re-OCRed in a targeted second pass.",
+  "rai:dataCollectionType": [
+    "Open peer-reviewed scientific publications",
+    "Granted and pending patent filings (USPTO and WIPO)"
+  ],
+  "rai:dataPreprocessingProtocol": [
+    "Conversion of PDF source documents to Markdown using MinerU v2.7 in VLM mode, preserving tables, figure captions, and LaTeX-rendered equations.",
+    "Targeted re-OCR of figures with data-bearing panels (sequence alignments, kinetics plots, in vivo efficacy figures).",
+    "Mapping of expert annotations to a unified 22-field schema with Core (weight 2.0), Standard (weight 1.0), and Auxiliary (weight 0.5) tiers.",
+    "Normalization of concentration units (pM, nM, uM, M) for kinetic and EC50 fields and parsing of scientific notation for kon/koff fields.",
+    "Empty-marker normalization (n.d., N/A, ND, None, '-', '') and germline-name canonicalization (e.g., IGHV1-3*01 = IGHV1-3) for downstream comparison."
+  ],
+  "rai:dataAnnotationProtocol": [
+    "Domain-expert immunology researchers reviewed each source document together with its supplementary materials and identified all antibodies for which the document reports independent functional or sequence evidence.",
+    "For each antibody, annotators populated the 22-field schema using only locally attributable evidence: each value is bound to a specific antibody, target/condition, and assay/readout reported in the document; comparator antibodies, unrecovered lineage nodes, and chain-swap controls were excluded unless the document reports independent antibody-level conclusions for them.",
+    "Sequence fields (CDRH3_Sequence, vh_sequence_aa, vl_sequence_aa) require complete amino-acid variable regions; germline names, accession identifiers, or identity percentages are not accepted as sequence values.",
+    "Cross-validation against external databases (PDB, GenBank, IMGT) was performed for entries that cite deposited identifiers.",
+    "All annotations were reviewed for entity-boundary consistency across papers and for adherence to the schema's tiered weighting before release."
+  ],
+  "rai:annotationsPerItem": "Each antibody record was annotated independently by a domain expert across all 22 fields; entries were reviewed for consistency and cross-validated against deposited database identifiers where available. Annotations are not crowdsourced.",
+  "rai:annotatorDemographics": [
+    "Annotators are professional immunology researchers at an academic research group; annotators are not crowdsourced. No personal demographic information about annotators is included in the dataset."
+  ],
+  "rai:dataUseCases": [
+    "Evaluation of LLM-based or agent-based systems for evidence-grounded antibody record construction from primary scientific literature and patents.",
+    "Benchmarking cross-document entity resolution, multi-modal evidence binding (text, tables, figures, supplements, external databases), database grounding, and numerical normalization in biomedical information extraction.",
+    "Stress-testing tool-augmented multi-agent frameworks for biomedical data curation, including provenance-preserving merge, sequence and structure backfill, and expert-feedback-driven skill accumulation.",
+    "Reference benchmark for downstream antibody engineering workflows that consume structured functional data (structure prediction, affinity maturation, format design)."
+  ],
+  "rai:dataBiases": [
+    "Topical bias: source documents over-represent viral targets (notably SARS-CoV-2, HIV-1, and Plasmodium falciparum) and selected oncology-related antibodies; many therapeutic areas (e.g., autoimmune, metabolic, neurological) are under-represented relative to their share of the antibody literature.",
+    "Language bias: all source documents are in English; antibody literature in other languages is not represented.",
+    "Format bias: 27 papers vs. 5 patents; patent layouts (claims, prior art sections, multi-column sequence listings) are under-represented relative to their share of antibody disclosures.",
+    "Temporal bias: documents span 2005-2025, so older entries may use measurement conventions, nomenclature, or germline references that have since been revised.",
+    "Evaluator bias: nine semantic fields are adjudicated by an LLM-as-Judge under field-specific rubrics. While expert calibration on a random sample of 120 verdicts gave 91.7% agreement and Cohen's kappa of 0.87, residual judge bias on edge cases is possible and should be considered when comparing systems near the score ceiling."
+  ],
+  "rai:dataLimitations": [
+    "Scale: 32 documents and 161 antibody records are sufficient to distinguish current system capabilities but small relative to the size of the antibody literature; conclusions should be treated as direction-of-effect rather than precise effect sizes.",
+    "Coverage: a subset of records have incomplete supplementary materials (non-redistributable, scanned, or multi-page sequence listings that resist parsing); these records have empty fields that are scored as skip rather than miss to avoid penalizing models for unannotated evidence.",
+    "External-database drift: Reference_Source, Structure, and germline-derived fields depend on external resources (PDB, GenBank, IMGT) that evolve; users should re-validate when re-using the benchmark months or years after release.",
+    "Empty-value semantics: empty strings denote evidence absent in the source document at annotation time; they do not imply that the corresponding measurement does not exist in nature.",
+    "Downstream validation: annotated records have not been wet-lab validated; the benchmark measures extraction fidelity, not the underlying biological claims."
+  ],
+  "rai:dataSocialImpact": "The benchmark is intended to accelerate antibody-related drug discovery and biomedical research by enabling reproducible, structured access to functional data that is already disclosed in the scientific literature and patent filings. The benchmark itself does not introduce new biological capabilities, novel sequences, or any information that is not already publicly published. No dual-use uplift is created beyond what is present in the original sources. Improved access to structured antibody data is expected to benefit academic and clinical research broadly, including pandemic preparedness and rare-disease therapeutic development.",
+  "rai:personalSensitiveInformation": [
+    "The dataset does not contain personally identifying information (PII), demographic information about humans, individual-level clinical or patient records, or any data subject to GDPR, HIPAA, or equivalent regulations.",
+    "All source documents are publicly available peer-reviewed scientific publications or published patent filings; annotators are not crowdsourced and no annotator demographics are recorded.",
+    "Any human subject information referenced in the source documents (e.g., clinical trial summaries) is aggregated and de-identified by the original publishers."
+  ],
+  "rai:dataReleaseMaintenancePlan": "The benchmark is released under the Apache 2.0 license. The anonymous review version is hosted at https://anonymous.4open.science/r/ABDataBench-4E0E . Upon paper acceptance, a de-anonymized public release will be tagged with a stable version identifier, with subsequent versions tagged as ground-truth corrections or schema extensions are merged. Issues and ground-truth corrections may be reported through the public repository's issue tracker. The dataset will be maintained alongside the corresponding publication; a maintainer contact will be provided in the de-anonymized README at camera-ready time.",
+
+  "distribution": [
+    {
+      "@type": "cr:FileObject",
+      "@id": "anonymous-repo",
+      "name": "ABDataBench anonymous review snapshot",
+      "description": "Top-level snapshot of the anonymous ABDataBench review repository, containing the 32 source-document folders, the consolidated ground-truth file, and the evaluation scripts.",
+      "contentUrl": "https://anonymous.4open.science/r/ABDataBench-4E0E",
+      "encodingFormat": "git+https",
+      "sha256": "main"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "ground-truth-file",
+      "name": "ground_truth.json",
+      "description": "Consolidated expert annotations: a JSON object keyed by paper_id, where each paper has paper_id, title, and an antibodies array of records under the 22-field schema.",
+      "containedIn": {"@id": "anonymous-repo"},
+      "contentUrl": "https://anonymous.4open.science/api/repo/ABDataBench-4E0E/file/benchmark/ground_truth/ground_truth.json",
+      "encodingFormat": "application/json"
+    },
+    {
+      "@type": "cr:FileSet",
+      "@id": "ocr-markdown",
+      "name": "OCR Markdown documents",
+      "description": "OCR-processed Markdown (MinerU v2.7, VLM mode) for the 32 source papers and patents. One folder per paper under dataset/<paper_id>/.",
+      "containedIn": {"@id": "anonymous-repo"},
+      "encodingFormat": "text/markdown",
+      "includes": "dataset/*/*.md"
+    },
+    {
+      "@type": "cr:FileSet",
+      "@id": "ocr-figures",
+      "name": "OCR-extracted figures",
+      "description": "Figure assets per source document, used for multi-modal evidence binding (sequence panels, kinetics plots, in vivo efficacy figures).",
+      "containedIn": {"@id": "anonymous-repo"},
+      "encodingFormat": "image/png",
+      "includes": "dataset/*/figures/*"
+    },
+    {
+      "@type": "cr:FileSet",
+      "@id": "supplementary-materials",
+      "name": "Supplementary materials",
+      "description": "Redistributable supplementary files associated with each source document when available (PDF, XLSX, DOCX, TXT). Non-redistributable supplements are omitted.",
+      "containedIn": {"@id": "anonymous-repo"},
+      "encodingFormat": "application/octet-stream",
+      "includes": "dataset/*/supplementary/*"
+    }
+  ],
+
+  "recordSet": [
+    {
+      "@type": "cr:RecordSet",
+      "@id": "documents",
+      "name": "documents",
+      "description": "Per-document metadata. 32 records in total (27 peer-reviewed papers and 5 patent filings). Derived from the top-level keys of ground_truth.json.",
+      "key": {"@id": "documents/paper_id"},
+      "field": [
+        {
+          "@type": "cr:Field",
+          "@id": "documents/paper_id",
+          "name": "paper_id",
+          "description": "Stable per-document identifier (also the dataset/<paper_id>/ folder name).",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.paper_id"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "documents/title",
+          "name": "title",
+          "description": "Human-readable title or short citation for the source document.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.title"}
+          }
+        }
+      ]
+    },
+    {
+      "@type": "cr:RecordSet",
+      "@id": "antibodies",
+      "name": "antibodies",
+      "description": "Per-antibody expert annotations under the unified 22-field schema. 161 records in total. Each record is bound to a specific antibody-target-assay-value evidence tuple. The paper_id field is a foreign key to the documents RecordSet.",
+      "key": [
+        {"@id": "antibodies/paper_id"},
+        {"@id": "antibodies/Antibody_Name"}
+      ],
+      "field": [
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/paper_id",
+          "name": "paper_id",
+          "description": "Identifier of the parent document the antibody is reported in (joins to documents.paper_id).",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].paper_id"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Antibody_Name",
+          "name": "Antibody_Name",
+          "description": "Primary antibody or clone name as reported in the source document.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Antibody_Name"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/CDRH3_Sequence",
+          "name": "CDRH3_Sequence",
+          "description": "CDR-H3 amino-acid sequence. Tier: Core. Weight: 2.0.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].CDRH3_Sequence"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/vh_sequence_aa",
+          "name": "vh_sequence_aa",
+          "description": "VH full variable-region amino-acid sequence or IMGT germline assignment. Tier: Core. Weight: 2.0.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].vh_sequence_aa"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/vl_sequence_aa",
+          "name": "vl_sequence_aa",
+          "description": "VL full variable-region amino-acid sequence or IMGT germline assignment. Tier: Core. Weight: 2.0.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].vl_sequence_aa"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Binding_Kinetics_KD",
+          "name": "Binding_Kinetics_KD",
+          "description": "Equilibrium dissociation constant K_D. Stored as a normalized string with explicit unit (pM, nM, uM, or M). Tier: Core. Weight: 2.0.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Binding_Kinetics_KD"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Target_Name",
+          "name": "Target_Name",
+          "description": "Antigen name including variant or strain qualifiers when reported. Tier: Standard. Weight: 1.0.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Target_Name"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Epitope",
+          "name": "Epitope",
+          "description": "Binding epitope or competition class. Tier: Standard. Weight: 1.0.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Epitope"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Antibody_Type",
+          "name": "Antibody_Type",
+          "description": "Antibody format classification (mAb, VHH, scFv, Fab, bispecific, fusion, polyclonal, ...). Tier: Standard. Weight: 1.0.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Antibody_Type"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Mechanism_of_Action",
+          "name": "Mechanism_of_Action",
+          "description": "Functional mechanism (neutralization, ADCC, ADCP, receptor blockade, ...). Tier: Standard. Weight: 1.0.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Mechanism_of_Action"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Experiment",
+          "name": "Experiment",
+          "description": "Set of experimental methods used to characterize the antibody, recorded as a comma- or semicolon-separated list (e.g., 'Flow cytometry, ELISA, SPR'). Tier: Standard. Weight: 1.0.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Experiment"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Binding_Kinetics_kon",
+          "name": "Binding_Kinetics_kon",
+          "description": "Association rate constant k_on. Stored as a normalized string with unit. Tier: Standard. Weight: 1.0.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Binding_Kinetics_kon"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Binding_Kinetics_koff",
+          "name": "Binding_Kinetics_koff",
+          "description": "Dissociation rate constant k_off. Stored as a normalized string with unit. Tier: Standard. Weight: 1.0.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Binding_Kinetics_koff"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Binding_EC50",
+          "name": "Binding_EC50",
+          "description": "Half-maximal effective concentration EC50. Stored as a normalized string with unit. Tier: Standard. Weight: 1.0.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Binding_EC50"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Structure",
+          "name": "Structure",
+          "description": "Structural data: PDB identifier, experimental method (Cryo-EM, X-ray, NMR), and resolution when available. Tier: Standard. Weight: 1.0.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Structure"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/source",
+          "name": "source",
+          "description": "Species of origin or derivation (human, murine, rabbit, llama, humanized, ...). Tier: Auxiliary. Weight: 0.5.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].source"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Reference_Source",
+          "name": "Reference_Source",
+          "description": "Citation evidence: publication DOI, PMID, or author-year reference. Tier: Auxiliary. Weight: 0.5.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Reference_Source"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Target_Type",
+          "name": "Target_Type",
+          "description": "Target molecular category (viral protein, receptor, cytokine, oncogene product, ...). Tier: Auxiliary. Weight: 0.5.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Target_Type"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Antibody_Isotype",
+          "name": "Antibody_Isotype",
+          "description": "Antibody isotype and subclass (IgG1, IgG2a, IgM, IgA1, ...). Tier: Auxiliary. Weight: 0.5.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Antibody_Isotype"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Cross_Reactivity",
+          "name": "Cross_Reactivity",
+          "description": "Cross-species or cross-variant reactivity profile (e.g., 'clade A, B, C, G'). Tier: Auxiliary. Weight: 0.5.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Cross_Reactivity"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Quantitative_Metric",
+          "name": "Quantitative_Metric",
+          "description": "Supplementary quantitative measurements such as IC50, neutralization titer, percent inhibition, with units and condition. Tier: Auxiliary. Weight: 0.5.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Quantitative_Metric"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/In_Vivo_Half_Life",
+          "name": "In_Vivo_Half_Life",
+          "description": "Pharmacokinetic half-life with unit (e.g., hours, days). Tier: Auxiliary. Weight: 0.5.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].In_Vivo_Half_Life"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/In_Vivo_Efficacy",
+          "name": "In_Vivo_Efficacy",
+          "description": "In vivo protection or therapeutic efficacy data with animal model, intervention, and outcome. Tier: Auxiliary. Weight: 0.5.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].In_Vivo_Efficacy"}
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "antibodies/Thermal_Stability_Tm",
+          "name": "Thermal_Stability_Tm",
+          "description": "Melting temperature T_m in degrees Celsius. Tier: Auxiliary. Weight: 0.5.",
+          "dataType": "sc:Text",
+          "source": {
+            "fileObject": {"@id": "ground-truth-file"},
+            "extract": {"jsonPath": "$.*.antibodies[*].Thermal_Stability_Tm"}
+          }
+        }
+      ]
+    }
+  ]
+}
