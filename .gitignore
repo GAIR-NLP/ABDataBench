@@ -1,6 +1,8 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+**/__pycache__/
 *.py[codz]
+**/*.pyc
 *$py.class
 /data/
 agent/output/

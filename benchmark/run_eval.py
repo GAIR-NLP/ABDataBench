@@ -12,7 +12,7 @@ Features:
 Examples:
     python run_eval.py --gt ground_truth/ground_truth.json --pred ../runs/dev/agent/benchmark_predictions.json
     python run_eval.py --gt ground_truth/ground_truth.json --pred ../runs/dev/agent/benchmark_predictions.json --papers "Fantin et al. Cell 2025"
-    python run_eval.py --gt ground_truth/ground_truth.json --pred ../runs/dev/agent/benchmark_predictions.json --model gzy/claude-4.6-sonnet
+    python run_eval.py --gt ground_truth/ground_truth.json --pred ../runs/dev/agent/benchmark_predictions.json --model gzy/gemini-3.1-pro
 
 An API key is required through --api-key or BENCHMARK_API_KEY/JUDGE_API_KEY/LLM_API_KEY.
 """
@@ -27,7 +27,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "scripts"))
 from dataset_partition import annotate_categories, filter_ground_truth, normalize_subset
 from evaluator import evaluate_benchmark, generate_markdown_report, result_to_dict
-from llm_judge import LLMJudge
+from llm_judge import DEFAULT_MODEL, LLMJudge
 
 
 BENCHMARK_ROOT = Path(__file__).resolve().parent
@@ -64,7 +64,7 @@ def main():
     parser.add_argument("--base-url", default=None, help="API Base URL")
     parser.add_argument(
         "--model",
-        default=os.environ.get("BENCHMARK_MODEL") or os.environ.get("JUDGE_MODEL") or "gzy/claude-4.6-sonnet",
+        default=os.environ.get("BENCHMARK_MODEL") or os.environ.get("JUDGE_MODEL") or DEFAULT_MODEL,
         help="Judge model",
     )
     parser.add_argument("--paper-concurrency", type=int, default=5, help="Paper-level concurrency (default: 5)")

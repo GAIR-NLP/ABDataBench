@@ -81,6 +81,7 @@ class SequenceImageTool:
         self.top_k_images = getattr(config, "sequence_vlm_top_k_images", 5)
         self.max_output_tokens = config.sequence_vlm_max_output_tokens
         self.parallel_limit = max(1, int(getattr(config, "sequence_vlm_concurrency", 1)))
+        self.endpoint = os.environ.get("SEQUENCE_VLM_ENDPOINT", "responses").strip().lower()
         self._semaphore = asyncio.Semaphore(self.parallel_limit)
         prompt_path = Path(__file__).resolve().parent.parent / "prompts" / "sequence_image_extract_system.txt"
         self.system_prompt = load_skill_prompt(
@@ -440,6 +441,8 @@ class SequenceImageTool:
         image_paths = [path for path in image_paths if path]
         if not image_paths:
             return ""
+        if self.endpoint == "chat":
+            return await self._call_chat_completions_api(image_paths, user_text)
         content = [{"type": "input_text", "text": user_text}]
         for image_path in image_paths:
             content.append({"type": "input_image", "image_url": self._image_to_data_uri(image_path)})
@@ -464,6 +467,7 @@ class SequenceImageTool:
             "Content-Type": "application/json",
         }
 
+        fallback_to_chat = False
         async with self._semaphore:
             for attempt in range(self.retry_count):
                 try:
@@ -488,6 +492,14 @@ class SequenceImageTool:
                         body = response.json()
                     break
                 except httpx.HTTPStatusError as e:
+                    if e.response.status_code in {400, 404, 405, 500, 501}:
+                        logger.warning(
+                            "Sequence image Responses API returned HTTP %s for %s; falling back to chat completions",
+                            e.response.status_code,
+                            self._image_batch_label(image_paths),
+                        )
+                        fallback_to_chat = True
+                        break
                     if attempt < self.retry_count - 1:
                         wait = 2 ** (attempt + 1)
                         logger.warning(
@@ -521,10 +533,102 @@ class SequenceImageTool:
                     f"Sequence image call failed after {self.retry_count} retries for {self._image_batch_label(image_paths)}"
                 )
 
+        if fallback_to_chat:
+            self.endpoint = "chat"
+            return await self._call_chat_completions_api(image_paths, user_text)
+
         usage = body.get("usage", {})
         self._total_calls += 1
         self._total_tokens += usage.get("total_tokens", 0)
         return self._extract_output_text(body)
+
+    async def _call_chat_completions_api(self, image_paths: list[str], user_text: str) -> str:
+        content = []
+        for image_path in image_paths:
+            content.append(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": self._image_to_data_uri(image_path)},
+                }
+            )
+        content.append({"type": "text", "text": user_text})
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": self.system_prompt},
+                {"role": "user", "content": content},
+            ],
+            "max_tokens": self.max_output_tokens,
+            "temperature": 0.0,
+        }
+        headers = {
+            "Authorization": self._auth_header_value(self.api_key),
+            "Content-Type": "application/json",
+        }
+
+        async with self._semaphore:
+            for attempt in range(self.retry_count):
+                try:
+                    async with httpx.AsyncClient(timeout=self.timeout, trust_env=False) as client:
+                        response = await client.post(
+                            f"{self.api_base}/v1/chat/completions",
+                            headers=headers,
+                            json=payload,
+                        )
+                        if response.status_code == 429:
+                            wait = 2 ** (attempt + 1)
+                            logger.warning(
+                                "Sequence image chat rate limited for %s, retrying in %ss (%s/%s)",
+                                self._image_batch_label(image_paths),
+                                wait,
+                                attempt + 1,
+                                self.retry_count,
+                            )
+                            await asyncio.sleep(wait)
+                            continue
+                        response.raise_for_status()
+                        body = response.json()
+                    break
+                except httpx.HTTPStatusError as e:
+                    if attempt < self.retry_count - 1:
+                        wait = 2 ** (attempt + 1)
+                        logger.warning(
+                            "Sequence image chat HTTP %s for %s, retry in %ss (%s/%s)",
+                            e.response.status_code,
+                            self._image_batch_label(image_paths),
+                            wait,
+                            attempt + 1,
+                            self.retry_count,
+                        )
+                        await asyncio.sleep(wait)
+                        continue
+                    raise
+                except (httpx.ConnectError, httpx.ReadTimeout) as e:
+                    if attempt < self.retry_count - 1:
+                        wait = 2 ** (attempt + 1)
+                        logger.warning(
+                            "Sequence image chat %s for %s: %r, retry in %ss (%s/%s)",
+                            type(e).__name__,
+                            self._image_batch_label(image_paths),
+                            e,
+                            wait,
+                            attempt + 1,
+                            self.retry_count,
+                        )
+                        await asyncio.sleep(wait)
+                        continue
+                    raise
+            else:
+                raise RuntimeError(
+                    f"Sequence image chat call failed after {self.retry_count} retries for {self._image_batch_label(image_paths)}"
+                )
+
+        usage = body.get("usage", {})
+        self._total_calls += 1
+        self._total_tokens += usage.get("total_tokens", 0)
+        choice = (body.get("choices") or [{}])[0]
+        message = choice.get("message") or {}
+        return str(message.get("content") or "").strip()
 
     @staticmethod
     def _auth_header_value(api_key: str) -> str:

@@ -15,7 +15,7 @@ from typing import List, Optional
 from openai import OpenAI
 
 
-DEFAULT_MODEL = "gzy/claude-4.6-sonnet"
+DEFAULT_MODEL = "gzy/gemini-3.1-pro"
 DEFAULT_BASE_URL = "https://api.opensii.ai"
 
 JUDGE_SYSTEM_PROMPT = """You are a biomedical information extraction quality evaluator.
@@ -339,6 +339,44 @@ class LLMJudge:
         return previous[-1]
 
     @classmethod
+    def _cdrh3_boundary_variants(cls, seq: str) -> set[str]:
+        """Return CDRH3-equivalent variants for common anchor/FW4 boundary choices."""
+        seq = cls._normalize_sequence_text(seq)
+        variants = {seq}
+        if seq.startswith("C") and len(seq) > 1:
+            variants.add(seq[1:])
+
+        expanded = set(variants)
+        for variant in variants:
+            # Some sources include the heavy-chain FW4 start after CDRH3, e.g.
+            # ASLRRYFDYWGQGTTL, while predictions may stop at ASLRRYFDYW.
+            match = re.search(r"W(?:GQG|G.G)[A-Z]*$", variant)
+            if match:
+                with_terminal_w = variant[: match.start() + 1]
+                without_terminal_w = variant[: match.start()]
+                if with_terminal_w:
+                    expanded.add(with_terminal_w)
+                if without_terminal_w:
+                    expanded.add(without_terminal_w)
+        return expanded
+
+    @classmethod
+    def _is_cdrh3_boundary_equivalent(cls, gt_seq: str, pred_seq: str) -> bool:
+        return bool(cls._cdrh3_boundary_variants(gt_seq) & cls._cdrh3_boundary_variants(pred_seq))
+
+    @staticmethod
+    def _is_predicted_sequence_substring(gt_seq: str, pred_seq: str) -> bool:
+        return bool(gt_seq and pred_seq and pred_seq in gt_seq)
+
+    @classmethod
+    def _is_predicted_cdrh3_substring(cls, gt_seq: str, pred_seq: str) -> bool:
+        return any(
+            cls._is_predicted_sequence_substring(gt_variant, pred_variant)
+            for gt_variant in cls._cdrh3_boundary_variants(gt_seq)
+            for pred_variant in cls._cdrh3_boundary_variants(pred_seq)
+        )
+
+    @classmethod
     def _rule_based_sequence_score(cls, field_name: str, gt_value: str, pred_value: str) -> Optional[dict]:
         if field_name not in SEQUENCE_FIELDS:
             return None
@@ -360,6 +398,20 @@ class LLMJudge:
         pred_seq = cls._normalize_sequence_text(pred_text)
         if gt_seq == pred_seq:
             return {"label": "exact", "score": 1.0, "reason": "Rule-based sequence match: exact sequence identity"}
+        if cls._is_predicted_sequence_substring(gt_seq, pred_seq):
+            return {"label": "exact", "score": 1.0, "reason": "Rule-based sequence match: predicted sequence is a substring of the ground truth"}
+        if field_name == "CDRH3_Sequence" and cls._is_predicted_cdrh3_substring(gt_seq, pred_seq):
+            return {
+                "label": "exact",
+                "score": 1.0,
+                "reason": "Rule-based CDRH3 match: predicted CDRH3 is a substring after antibody boundary normalization",
+            }
+        if field_name == "CDRH3_Sequence" and cls._is_cdrh3_boundary_equivalent(gt_seq, pred_seq):
+            return {
+                "label": "exact",
+                "score": 1.0,
+                "reason": "Rule-based CDRH3 match: equivalent CDRH3 core with antibody boundary/FW4 differences",
+            }
         if gt_seq in pred_seq or pred_seq in gt_seq:
             return {"label": "exact", "score": 1.0, "reason": "Rule-based sequence match: one sequence fully contains the other"}
 
