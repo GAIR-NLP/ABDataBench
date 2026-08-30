@@ -1,5 +1,7 @@
 # ABDataBench: A Benchmark for Structured Antibody Data Extraction from Scientific Literature
 
+[English](README.md) | [中文](README_zh.md)
+
 [![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github)](https://github.com/GAIR-NLP/ABDataBench)
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97-Hugging%20Face-yellow)](https://huggingface.co/datasets/GAIR/ABDataCorpus)
 [![Code License](https://img.shields.io/badge/Code-Apache_2.0-blue.svg)](LICENSE)
