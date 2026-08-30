@@ -8,7 +8,7 @@ GT_PATH="${BENCHMARK_GT_PATH:-ground_truth/ground_truth.json}"
 PRED_PATH="${BENCHMARK_PRED_PATH:?Set BENCHMARK_PRED_PATH to the prediction JSON path}"
 JUDGE_API_KEY="${BENCHMARK_API_KEY:-${ANTHROPIC_AUTH_TOKEN:-${LLM_API_KEY:-}}}"
 JUDGE_BASE_URL="${BENCHMARK_BASE_URL:-${ANTHROPIC_BASE_URL:-https://api.opensii.ai}}"
-JUDGE_MODEL="${BENCHMARK_MODEL:-gzy/claude-4.6-sonnet}"
+JUDGE_MODEL="${BENCHMARK_MODEL:-gzy/gemini-3.1-pro}"
 
 if [[ -z "$JUDGE_API_KEY" ]]; then
   echo "Set BENCHMARK_API_KEY, ANTHROPIC_AUTH_TOKEN, or LLM_API_KEY before running." >&2

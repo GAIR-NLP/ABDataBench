@@ -5,7 +5,7 @@ The live benchmark judge prompt is defined in
 
 Default judge model:
 
-- `gzy/claude-4.6-sonnet`
+- `gzy/gemini-3.1-pro`
 
 Evaluation does not send every field directly to the LLM. Empty-value handling,
 miss/skip logic, selected numeric fields, selected sequence fields,

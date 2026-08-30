@@ -5,7 +5,7 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "benchmark", "scripts"))
-from llm_judge import LLMJudge, extract_json_object, FIELD_SPECIAL_GUIDANCE
+from llm_judge import DEFAULT_MODEL, LLMJudge, extract_json_object, FIELD_SPECIAL_GUIDANCE
 
 
 class _FailingClient:
@@ -57,6 +57,23 @@ class _CapturingClient:
         return self._Chat(self)
 
 
+class TestDefaultModel(unittest.TestCase):
+    def test_default_model_matches_paper_and_disables_gemini_reasoning(self):
+        self.assertEqual(DEFAULT_MODEL, "gzy/gemini-3.1-pro")
+
+        judge = LLMJudge(api_key="dummy", base_url="https://example.invalid")
+        judge.client = _CapturingClient()
+        result = judge.judge_field("Target_Name", "SARS-CoV-2 Spike", "Spike protein")
+
+        self.assertEqual(result["label"], "exact")
+        self.assertEqual(judge.model, DEFAULT_MODEL)
+        self.assertEqual(judge.client.last_kwargs["model"], DEFAULT_MODEL)
+        self.assertEqual(
+            judge.client.last_kwargs["extra_body"],
+            {"reasoning_effort": "none"},
+        )
+
+
 class TestExtractJsonObject(unittest.TestCase):
     def test_extracts_trailing_json_after_explanation(self):
         text = (
@@ -95,6 +112,45 @@ class TestSequenceRuleScoring(unittest.TestCase):
     def test_missing_predicted_sequence_is_wrong_without_llm(self):
         gt = "AIQLTQSPSSLSASVGDRVTITCRASQGANSYLAWYQQKPGKAPKLLIYAASTLQSGVPSRFSGSGSGTDFTLTISSLEPEDFATYYCQQYNSYPLTFGQGTKLEIK"
         result = self.judge.judge_field("vl_sequence_aa", gt, "")
+        self.assertEqual(result["label"], "wrong")
+        self.assertEqual(result["score"], 0.0)
+
+    def test_predicted_sequence_substring_is_exact_without_llm(self):
+        result = self.judge.judge_field(
+            "vh_sequence_aa",
+            "QVQLQQSGPGLVKPSQTLSLTCVISGDSVSSNTAAWDWIRQSPSRGLEWLGRTYYRSK",
+            "TLSLTCVISGDSVSSNTAAWDW",
+        )
+        self.assertEqual(result["label"], "exact")
+        self.assertEqual(result["score"], 1.0)
+        self.assertIn("substring", result["reason"])
+
+    def test_cdrh3_boundary_and_fw4_tail_differences_are_exact(self):
+        result = self.judge.judge_field(
+            "CDRH3_Sequence",
+            "ASLRRYFDYWGQGTTL",
+            "CASLRRYFDYW",
+        )
+        self.assertEqual(result["label"], "exact")
+        self.assertEqual(result["score"], 1.0)
+        self.assertIn("substring", result["reason"])
+
+    def test_cdrh3_predicted_substring_after_boundary_normalization_is_exact(self):
+        result = self.judge.judge_field(
+            "CDRH3_Sequence",
+            "ASLRRYFDYWGQGTTL",
+            "CASLRRYFDY",
+        )
+        self.assertEqual(result["label"], "exact")
+        self.assertEqual(result["score"], 1.0)
+        self.assertIn("substring", result["reason"])
+
+    def test_cdrh3_boundary_rule_does_not_apply_to_full_vh_sequence(self):
+        result = self.judge.judge_field(
+            "vh_sequence_aa",
+            "ASLRRYFDYWGQGTTL",
+            "CASLRRYFDYW",
+        )
         self.assertEqual(result["label"], "wrong")
         self.assertEqual(result["score"], 0.0)
 

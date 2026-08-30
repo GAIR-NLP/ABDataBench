@@ -112,11 +112,14 @@ class Orchestrator:
         if config.enable_image_extract:
             self.vlm = VLMClient(config)
             self.image_extractor = ImageExtractAgent(config, vlm=self.vlm)
-            self.sequence_image_extractor = SequenceImageExtractAgent(config)
         else:
             self.vlm = None
             self.image_extractor = None
-            self.sequence_image_extractor = None
+        self.sequence_image_extractor = (
+            SequenceImageExtractAgent(config)
+            if config.enable_image_extract and config.enable_sequence_image_tool
+            else None
+        )
 
     async def run(self, input_md_path: str, output_dir: str) -> dict:
         FileUtils.ensure_dir(output_dir)
@@ -772,8 +775,14 @@ class Orchestrator:
             },
         }
 
-    @staticmethod
-    def _should_run_vlm_gap_fill(context: dict, gap_report: dict, vlm_targets: list[dict] | None = None) -> bool:
+    def _should_run_vlm_gap_fill(
+        self,
+        context: dict,
+        gap_report: dict,
+        vlm_targets: list[dict] | None = None,
+    ) -> bool:
+        if not self.config.enable_image_extract or not self.image_extractor:
+            return False
         effective_targets = gap_report["targets"] if vlm_targets is None else vlm_targets
         return bool(
             effective_targets

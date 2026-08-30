@@ -218,6 +218,9 @@ class Config:
         self.vlm_retry_count = int(os.environ.get("VLM_RETRY_COUNT", self.vlm_retry_count))
         self.vlm_use_bearer_auth = _env_bool("VLM_USE_BEARER_AUTH", self.vlm_use_bearer_auth)
         self.vlm_disable_proxy = _env_bool("VLM_DISABLE_PROXY", self.vlm_disable_proxy)
+        self.enable_image_extract = _env_bool(
+            "ENABLE_IMAGE_EXTRACT", self.enable_image_extract
+        )
         self.vlm_top_k_images = int(
             os.environ.get("VLM_TOP_K_IMAGES", self.vlm_top_k_images)
         )
@@ -249,6 +252,9 @@ class Config:
         self.sequence_vlm_api_key = _env_str(
             "SEQUENCE_VLM_API_KEY",
             self.sequence_vlm_api_key or self.llm_api_key,
+        )
+        self.enable_sequence_image_tool = _env_bool(
+            "ENABLE_SEQUENCE_IMAGE_TOOL", self.enable_sequence_image_tool
         )
         self.sequence_vlm_model = _env_str(
             "SEQUENCE_VLM_MODEL", self.sequence_vlm_model

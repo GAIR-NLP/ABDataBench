@@ -61,6 +61,9 @@ class TestOrchestratorGapFlow(unittest.TestCase):
         self.assertNotIn("Target_Name", gap_report["summary"]["missing_counts"])
 
     def test_should_run_vlm_gap_fill_requires_targets_antibodies_and_images(self):
+        orchestrator = Orchestrator.__new__(Orchestrator)
+        orchestrator.config = type("Config", (), {"enable_image_extract": True})()
+        orchestrator.image_extractor = object()
         context = {
             "paper_id": "paper-1",
             "markdown_text": "body ![fig](images/fig1.png)",
@@ -68,20 +71,27 @@ class TestOrchestratorGapFlow(unittest.TestCase):
         }
         gap_report = {"targets": [{"antibody_name": "Ab1", "missing_fields": ["CDRH3_Sequence"]}]}
 
-        self.assertTrue(Orchestrator._should_run_vlm_gap_fill(context, gap_report))
+        self.assertTrue(orchestrator._should_run_vlm_gap_fill(context, gap_report))
         self.assertFalse(
-            Orchestrator._should_run_vlm_gap_fill(
+            orchestrator._should_run_vlm_gap_fill(
                 {**context, "markdown_text": "body without figures"},
                 gap_report,
             )
         )
         self.assertFalse(
-            Orchestrator._should_run_vlm_gap_fill(
+            orchestrator._should_run_vlm_gap_fill(
                 {**context, "skeleton": {"paper-1": {"antibodies": []}}},
                 gap_report,
             )
         )
-        self.assertFalse(Orchestrator._should_run_vlm_gap_fill(context, {"targets": []}))
+        self.assertFalse(orchestrator._should_run_vlm_gap_fill(context, {"targets": []}))
+
+        orchestrator.config.enable_image_extract = False
+        self.assertFalse(orchestrator._should_run_vlm_gap_fill(context, gap_report))
+
+        orchestrator.config.enable_image_extract = True
+        orchestrator.image_extractor = None
+        self.assertFalse(orchestrator._should_run_vlm_gap_fill(context, gap_report))
 
     def test_merge_extractions_fills_only_missing_fields(self):
         skeleton = {
